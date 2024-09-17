@@ -3,14 +3,14 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg
 from django.contrib.auth import get_user_model
 
-from reviews.constants import MAX_NAME_LENGTH
+from reviews.constants import MAX_NAME_LENGTH, MAX_SLUG_LENGTH
 
 User = get_user_model()
 
 
 class Category(models.Model):
     name = models.CharField('Название', max_length=MAX_NAME_LENGTH)
-    slug = models.SlugField('Слаг', unique=True)
+    slug = models.SlugField('Слаг', unique=True, max_length=MAX_SLUG_LENGTH)
 
     class Meta:
         verbose_name = 'Категория'
@@ -19,7 +19,7 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField('Название', max_length=MAX_NAME_LENGTH)
-    slug = models.SlugField('Слаг', unique=True)
+    slug = models.SlugField('Слаг', unique=True, max_length=MAX_SLUG_LENGTH)
 
     class Meta:
         verbose_name = 'Жанр'
