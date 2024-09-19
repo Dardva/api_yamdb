@@ -1,4 +1,6 @@
 from django.urls import include, path
+from users.views import MyTokenObtainPairView, RegisterView
+
 # from rest_framework.routers import DefaultRouter
 # from .views import ReviewViewSet, CommentViewSet
 
@@ -15,7 +17,9 @@ from django.urls import include, path
 # )
 
 urlpatterns = [
-    path('v1/auth/', include('djoser.urls')),
-    path('v1/auth/', include('djoser.urls.jwt')),
+    path('v1/auth/token/',
+         MyTokenObtainPairView.as_view(),
+         name='token_obtain_pair'),
+    path('v1/auth/signup/', RegisterView.as_view(), name='signup')
     # path('v1/', include(router.urls)),
 ]
