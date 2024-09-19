@@ -3,17 +3,24 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics, mixins
+from rest_framework import viewsets
 
 
 from .serializers import (
     MyTokenObtainPairSerializer,
-    SignupSerializer
+    SignupSerializer,
+    UserSerializer
 )
 User = get_user_model()
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+
+class UsersViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 
 class RegisterView(
