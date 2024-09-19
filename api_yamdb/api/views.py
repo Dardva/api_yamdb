@@ -23,12 +23,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
     # permission_classes = [IsAuthorOrModeratorOrAdminOrReadOnly]
     pagination_class = PageNumberPagination
 
-    def get_queryset(self):
-        return Review.objects.filter(title_id=self.kwargs.get('title_id'))
+#     def get_queryset(self):
+#         return Review.objects.filter(title_id=self.kwargs.get('title_id'))
 
-    def perform_create(self, serializer):
-        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        serializer.save(author=self.request.user, title=title)
+#     def perform_create(self, serializer):
+#         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+#         serializer.save(author=self.request.user, title=title)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -39,11 +39,11 @@ class CommentViewSet(viewsets.ModelViewSet):
     # permission_classes = [IsAuthorOrModeratorOrAdminOrReadOnly]
     pagination_class = PageNumberPagination
 
-    def get_queryset(self):
-        return Comment.objects.filter(
-            review_id=self.kwargs.get('review_id'),
-            review__title_id=self.kwargs.get('title_id')
-        )
+#     def get_queryset(self):
+#         return Comment.objects.filter(
+#             review_id=self.kwargs.get('review_id'),
+#             review__title_id=self.kwargs.get('title_id')
+#         )
 
     def perform_create(self, serializer):
         review = get_object_or_404(
