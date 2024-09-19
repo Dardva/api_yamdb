@@ -1,5 +1,5 @@
 from django.core.mail import send_mail
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from rest_framework import validators
@@ -41,12 +41,12 @@ class SignupSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
-            confirmation_code=self.make_confirmation_code(validated_data)
+            password=self.make_confirmation_code(validated_data)
         )
         return user
 
     def update(self, instance, validated_data):
-        instance.confirmation_code = self.make_confirmation_code(
+        instance.password = self.make_confirmation_code(
             validated_data)
         instance.save()
         return instance
@@ -76,11 +76,32 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         self.fields['confirmation_code'] = PasswordField()
         del self.fields['password']
 
+    def validate(self, attrs):
+
+        authenticate_kwargs = {
+            self.username_field: attrs[self.username_field],
+            'password': attrs['confirmation_code'],
+        }
+        try:
+            authenticate_kwargs["request"] = self.context["request"]
+            
+        except KeyError:
+            pass
+        self.user = authenticate(**authenticate_kwargs)
+        if not self.user:
+            raise serializers.ValidationError(
+                'Пользователь с указанным кодом подтверждения не найден',
+                code='authorization'
+            )
+        refresh = self.get_token(self.user)
+        data = {'token': str(refresh), 'access': str(refresh.access_token)}
+        return data
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
 
         token['username'] = user.username
-        token['confirmation_code'] = user.confirmation_code
+        token['confirmation_code'] = user.password
 
         return token
