@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     CategoryViewSet, CommentViewSet, GenreViewSet, ReviewViewSet, TitleViewSet)
+from users.views import UsersViewSet
 
 router = DefaultRouter()
 router.register(
@@ -19,6 +20,7 @@ router.register(
 router.register('categories', CategoryViewSet, basename='categories')
 router.register('genres', GenreViewSet, basename='genres')
 router.register('titles', TitleViewSet, basename='titles')
+router.register('users', UsersViewSet, basename='users')
 
 urlpatterns = [
     path('v1/auth/token/',

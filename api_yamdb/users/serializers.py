@@ -1,5 +1,6 @@
 from django.core.mail import send_mail
 from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from rest_framework import validators
@@ -12,6 +13,7 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели пользователя."""
 
     class Meta:
         model = User
@@ -23,6 +25,10 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'role',
         )
+        extra_kwargs = {
+            'username': {'required': True},
+            'email': {'required': True},
+        }
 
 
 class SignupSerializer(serializers.ModelSerializer):
@@ -84,7 +90,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         }
         try:
             authenticate_kwargs["request"] = self.context["request"]
-            
+
         except KeyError:
             pass
         self.user = authenticate(**authenticate_kwargs)
