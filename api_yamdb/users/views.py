@@ -1,9 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework import generics, mixins
-from rest_framework import viewsets
-from rest_framework import permissions
+from rest_framework import generics, mixins, viewsets, permissions
+from rest_framework import filters
 
 from .permissions import IsOnlyAdmins
 
@@ -23,9 +22,13 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 
 class UsersViewSet(viewsets.ModelViewSet):
+    lookup_field = 'username'
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsOnlyAdmins]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
 
 class UsersMeView(generics.RetrieveUpdateAPIView):

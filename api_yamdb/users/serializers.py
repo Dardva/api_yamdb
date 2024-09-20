@@ -1,12 +1,12 @@
 from django.core.mail import send_mail
 from django.contrib.auth import authenticate, get_user_model
-from django.contrib.auth.models import Group
 from django.contrib.auth.hashers import make_password
 from django.http import Http404
 from rest_framework import serializers
 from rest_framework import validators
 from rest_framework_simplejwt.serializers import (
     PasswordField, TokenObtainPairSerializer)
+
 
 from .constants import FORBIDDEN_USERNAME
 
@@ -85,7 +85,7 @@ class SignupSerializer(serializers.ModelSerializer):
 
     def send_confirmation_code(self, confirmation_code, email):
         send_mail(
-            'Код подтверждения для Yamdb',
+            'Yamdb',
             f'Ваш код подтверждения: {confirmation_code}',
             '5hL7n@example.com',
             [email],
