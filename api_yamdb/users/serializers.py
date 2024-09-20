@@ -2,6 +2,7 @@ from django.core.mail import send_mail
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.hashers import make_password
+from django.http import Http404
 from rest_framework import serializers
 from rest_framework import validators
 from rest_framework_simplejwt.serializers import (
@@ -13,6 +14,25 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели пользователя для админа."""
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
+        extra_kwargs = {
+            'username': {'required': True},
+            'email': {'required': True},
+        }
+
+
+class UserMeSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
 
     class Meta:
@@ -25,6 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'role',
         )
+        read_only_fields = ('role',)
         extra_kwargs = {
             'username': {'required': True},
             'email': {'required': True},
@@ -83,6 +104,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         del self.fields['password']
 
     def validate(self, attrs):
+        if not User.objects.filter(
+                username=attrs[self.username_field]).exists():
+            raise Http404(
+                'Пользователь с указанным именем не найден',
+            )
 
         authenticate_kwargs = {
             self.username_field: attrs[self.username_field],

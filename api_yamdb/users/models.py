@@ -4,7 +4,8 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     """Модель пользователя."""
-    bio = models.TextField(null=True, blank=True)
+    bio = models.TextField(verbose_name='Биография',
+                           blank=True, max_length=500)
     role = models.CharField(
         max_length=10,
         choices=(

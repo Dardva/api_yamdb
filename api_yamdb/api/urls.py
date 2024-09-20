@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     CategoryViewSet, CommentViewSet, GenreViewSet, ReviewViewSet, TitleViewSet)
-from users.views import UsersViewSet
+from users.views import UsersViewSet, UsersMeView
 
 router = DefaultRouter()
 router.register(
@@ -27,5 +27,6 @@ urlpatterns = [
          MyTokenObtainPairView.as_view(),
          name='token_obtain_pair'),
     path('v1/auth/signup/', RegisterView.as_view(), name='signup'),
+    path('v1/users/me/', UsersMeView.as_view(), name='users_me'),
     path('v1/', include(router.urls)),
 ]
