@@ -12,43 +12,66 @@ from api.serializers import (
     CommentSerializer
 )
 from api.viewsets import CreateListDestroyViewSet
-# from .permissions import IsAuthorOrModeratorOrAdminOrReadOnly
+from api.permissions import IsAuthorOrModeratorOrAdmin
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """
-    Вьюсет для обработки операций с отзывами.
+    Вьюсет для отзывов на произведения.
+    Доступен для аутентифицированных пользователей.
     """
     serializer_class = ReviewSerializer
-    # permission_classes = [IsAuthorOrModeratorOrAdminOrReadOnly]
-    pagination_class = PageNumberPagination
+    permission_classes = [IsAuthorOrModeratorOrAdmin]
 
-#     def get_queryset(self):
-#         return Review.objects.filter(title_id=self.kwargs.get('title_id'))
+    def get_queryset(self):
+        """
+        Получает список отзывов для определённого произведения.
+        """
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return title.reviews.all()
 
-#     def perform_create(self, serializer):
-#         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-#         serializer.save(author=self.request.user, title=title)
+    def perform_create(self, serializer):
+        """
+        Создаёт новый отзыв и обновляет рейтинг произведения.
+        """
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
+        self.update_title_rating(title)
+
+    def update_title_rating(self, title):
+        """
+        Обновляет средний рейтинг произведения на основе отзывов.
+        """
+        reviews = title.reviews.all()
+        rating = reviews.aggregate(models.Avg('score'))['score__avg']
+        title.rating = rating
+        title.save()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     """
-    Вьюсет для обработки операций с комментариями.
+    Вьюсет для комментариев к отзывам.
+    Доступен для аутентифицированных пользователей.
     """
     serializer_class = CommentSerializer
-    # permission_classes = [IsAuthorOrModeratorOrAdminOrReadOnly]
-    pagination_class = PageNumberPagination
+    permission_classes = [IsAuthorOrModeratorOrAdmin]
 
-#     def get_queryset(self):
-#         return Comment.objects.filter(
-#             review_id=self.kwargs.get('review_id'),
-#             review__title_id=self.kwargs.get('title_id')
-#         )
+    def get_queryset(self):
+        """
+        Получает список комментариев для определённого отзыва.
+        """
+        review = get_object_or_404(
+            Review, id=self.kwargs.get('review_id'),
+            title_id=self.kwargs.get('title_id')
+        )
+        return review.comments.all()
 
     def perform_create(self, serializer):
+        """
+        Создаёт новый комментарий к отзыву.
+        """
         review = get_object_or_404(
-            Review,
-            pk=self.kwargs.get('review_id'),
+            Review, id=self.kwargs.get('review_id'),
             title_id=self.kwargs.get('title_id')
         )
         serializer.save(author=self.request.user, review=review)

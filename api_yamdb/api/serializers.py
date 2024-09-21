@@ -2,13 +2,48 @@ import datetime
 
 from rest_framework import serializers
 
-from reviews.models import Category, Genre, Title
+from reviews.models import Category, Comment, Genre, Review, Title
+
 
 class ReviewSerializer(serializers.ModelSerializer):
-    pass
+    """
+    Сериализатор для модели Review.
+    """
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username'
+    )
+
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+    def validate(self, data):
+        """
+        Проверяет, что пользователь не оставил отзыв на это произведение ранее.
+        """
+        request = self.context['request']
+        if request.method == 'POST':
+            title_id = self.context['view'].kwargs.get('title_id')
+            if Review.objects.filter(
+                    title_id=title_id, author=request.user
+            ).exists():
+                raise serializers.ValidationError(
+                    'Вы уже оставили отзыв на это произведение.')
+        return data
+
 
 class CommentSerializer(serializers.ModelSerializer):
-    pass
+    """
+    Сериализатор для модели Comment.
+    """
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username'
+    )
+
+    class Meta:
+        model = Comment
+        fields = '__all__'
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
