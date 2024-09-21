@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status, viewsets
+from rest_framework import filters, status, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -82,6 +82,8 @@ class CategoryViewSet(CreateListDestroyViewSet):
     pagination_class = PageNumberPagination
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(CreateListDestroyViewSet):
@@ -89,6 +91,8 @@ class GenreViewSet(CreateListDestroyViewSet):
     pagination_class = PageNumberPagination
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
