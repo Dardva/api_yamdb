@@ -12,8 +12,7 @@ from api.serializers import (
     CommentSerializer
 )
 from api.viewsets import CreateListDestroyViewSet
-from api.permissions import IsAuthorOrModeratorOrAdmin
-from users.permissions import IsOnlyAdmins
+from api.permissions import IsAdminOrReadOnly, IsAuthorOrModeratorOrAdmin
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -82,23 +81,23 @@ class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
     pagination_class = PageNumberPagination
     serializer_class = CategorySerializer
-    permission_classes = [IsOnlyAdmins]
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class GenreViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
     pagination_class = PageNumberPagination
     serializer_class = GenreSerializer
-    permission_classes = [IsOnlyAdmins]
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     pagination_class = PageNumberPagination
     serializer_class = TitleSerializer
-    permission_classes = [IsOnlyAdmins]
+    permission_classes = [IsAdminOrReadOnly]
 
-    def update(self, request):
+    def update(self, request, *args, **kwargs):
         return Response(
             {"detail": "PUT method is not allowed."},
             status=status.HTTP_405_METHOD_NOT_ALLOWED
