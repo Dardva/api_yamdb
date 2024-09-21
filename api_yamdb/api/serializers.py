@@ -2,6 +2,7 @@ import datetime
 
 from rest_framework import serializers
 
+from reviews.constants import MAX_NAME_LENGTH
 from reviews.models import Category, Comment, Genre, Review, Title
 
 
@@ -44,6 +45,7 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = '__all__'
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
@@ -60,8 +62,7 @@ class TitleSerializer(serializers.ModelSerializer):
     description = serializers.CharField(required=False)
     genre = serializers.SlugRelatedField(
         many=True, slug_field='slug', queryset=Genre.objects.all())
-    category = serializers.SlugRelatedField(slug_field='slug',
-                                            queryset=Category.objects.all())
+    category = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
@@ -69,9 +70,22 @@ class TitleSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'rating')
         model = Title
 
+    def get_category(self, obj):
+        return {
+            'name': obj.category.name,  # Предполагается, что в модели Category есть поле name
+            'slug': obj.category.slug
+        }
+
     def validate_year(self, value):
         current_year = datetime.datetime.now().year
         if value > current_year:
             raise serializers.ValidationError(
                 'Нельзя добавлять произведения, которые еще не вышли.')
         return value
+
+    # def validate_name(self, value):
+    #     if len(value) > MAX_NAME_LENGTH:
+    #         raise serializers.ValidationError(
+    #             f'Название произведения не может быть длиннее '
+    #             f'{MAX_NAME_LENGTH} символов'
+    #         )
