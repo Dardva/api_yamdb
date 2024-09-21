@@ -13,6 +13,7 @@ from api.serializers import (
 )
 from api.viewsets import CreateListDestroyViewSet
 from api.permissions import IsAuthorOrModeratorOrAdmin
+from users.permissions import IsOnlyAdmins
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -81,21 +82,21 @@ class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
     pagination_class = PageNumberPagination
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsOnlyAdmins]
 
 
 class GenreViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
     pagination_class = PageNumberPagination
     serializer_class = GenreSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsOnlyAdmins]
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     pagination_class = PageNumberPagination
     serializer_class = TitleSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsOnlyAdmins]
 
     def update(self, request):
         return Response(
