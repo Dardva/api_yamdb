@@ -60,9 +60,10 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     description = serializers.CharField(required=False)
-    genre = serializers.SlugRelatedField(
-        many=True, slug_field='slug', queryset=Genre.objects.all())
-    category = serializers.SerializerMethodField()
+    genre = GenreSerializer(many=True)
+    category = serializers.SlugRelatedField(
+        slug_field='slug', queryset=Category.objects.all(), required=True
+    )
 
     class Meta:
         fields = (
@@ -70,11 +71,13 @@ class TitleSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'rating')
         model = Title
 
-    def get_category(self, obj):
-        return {
-            'name': obj.category.name,  # Предполагается, что в модели Category есть поле name
-            'slug': obj.category.slug
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['category'] = {
+            'name': instance.category.name,
+            'slug': instance.category.slug
         }
+        return representation
 
     def validate_year(self, value):
         current_year = datetime.datetime.now().year
