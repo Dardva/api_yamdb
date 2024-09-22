@@ -29,6 +29,21 @@ class UserSerializer(serializers.ModelSerializer):
             'email': {'required': True},
         }
 
+    def validate(self, attrs):
+        if 'username' in attrs and attrs['username'] in FORBIDDEN_USERNAME:
+            raise validators.ValidationError('Недопустимое имя пользователя')
+        if self.instance is not None:
+            if User.objects.filter(
+                email=attrs['email']
+            ).exclude(id=self.instance.id).exists():
+                raise validators.ValidationError('Email уже зарегистрирован')
+            if User.objects.filter(
+                username=attrs['username']
+            ).exclude(id=self.instance.id).exists():
+                raise validators.ValidationError(
+                    'Username уже зарегистрирован')
+        return super().validate(attrs)
+
 
 class UserMeSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
@@ -48,6 +63,11 @@ class UserMeSerializer(serializers.ModelSerializer):
             'username': {'required': True},
             'email': {'required': True},
         }
+
+    def validate(self, attrs):
+        if 'username' in attrs and attrs['username'] in FORBIDDEN_USERNAME:
+            raise validators.ValidationError('Недопустимое имя пользователя')
+        return super().validate(attrs)
 
 
 class SignupSerializer(serializers.ModelSerializer):
@@ -124,7 +144,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                 code='authorization'
             )
         refresh = self.get_token(self.user)
-        data = {'token': str(refresh), 'access': str(refresh.access_token)}
+        data = {'token': str(refresh.access_token)}
         return data
 
     @classmethod
