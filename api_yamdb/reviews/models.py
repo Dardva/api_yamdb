@@ -1,7 +1,7 @@
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models import Avg
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.db.models import Avg
 
 from reviews.constants import MAX_NAME_LENGTH, MAX_SLUG_LENGTH
 
@@ -31,7 +31,6 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField('Название', max_length=MAX_NAME_LENGTH)
     year = models.IntegerField('Год создания')
-    rating = models.IntegerField('Рейтинг')
     description = models.TextField('Описание')
     genre = models.ManyToManyField(
         Genre, verbose_name='Жанр')

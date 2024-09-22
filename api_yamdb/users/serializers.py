@@ -1,12 +1,10 @@
-from django.core.mail import send_mail
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
+from django.core.mail import send_mail
 from django.http import Http404
-from rest_framework import serializers
-from rest_framework import validators
-from rest_framework_simplejwt.serializers import (
-    PasswordField, TokenObtainPairSerializer)
-
+from rest_framework import serializers, validators
+from rest_framework_simplejwt.serializers import (PasswordField,
+                                                  TokenObtainPairSerializer)
 
 from .constants import FORBIDDEN_USERNAME
 

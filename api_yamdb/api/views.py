@@ -1,18 +1,23 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, status, viewsets
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.response import Response
 
-from reviews.models import Category, Comment, Genre, Review, Title
+from django_filters.rest_framework import DjangoFilterBackend
+
+from rest_framework import filters, viewsets
+from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.pagination import PageNumberPagination
+
+from reviews.models import Category, Genre, Review, Title
+
+from api.filters import TitleFilter
+from api.permissions import IsAdminOrReadOnly, IsAuthorOrModeratorOrAdmin
 from api.serializers import (
     CategorySerializer,
+    CommentSerializer,
     GenreSerializer,
-    TitleSerializer,
     ReviewSerializer,
-    CommentSerializer
+    TitleSerializer
 )
 from api.viewsets import CreateListDestroyViewSet
-from api.permissions import IsAdminOrReadOnly, IsAuthorOrModeratorOrAdmin
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -22,30 +27,20 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthorOrModeratorOrAdmin]
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
-        """
-        Получает список отзывов для определённого произведения.
-        """
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        """
-        Создаёт новый отзыв и обновляет рейтинг произведения.
-        """
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
-        self.update_title_rating(title)
 
-    def update_title_rating(self, title):
-        """
-        Обновляет средний рейтинг произведения на основе отзывов.
-        """
-        reviews = title.reviews.all()
-        rating = reviews.aggregate(models.Avg('score'))['score__avg']
-        title.rating = rating
-        title.save()
+    def update(self, request, *args, **kwargs):
+        if request.method == 'PUT':
+            raise MethodNotAllowed('PUT')
+        return super().update(request, *args, **kwargs)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -55,11 +50,9 @@ class CommentViewSet(viewsets.ModelViewSet):
     """
     serializer_class = CommentSerializer
     permission_classes = [IsAuthorOrModeratorOrAdmin]
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
-        """
-        Получает список комментариев для определённого отзыва.
-        """
         review = get_object_or_404(
             Review, id=self.kwargs.get('review_id'),
             title_id=self.kwargs.get('title_id')
@@ -67,14 +60,16 @@ class CommentViewSet(viewsets.ModelViewSet):
         return review.comments.all()
 
     def perform_create(self, serializer):
-        """
-        Создаёт новый комментарий к отзыву.
-        """
         review = get_object_or_404(
             Review, id=self.kwargs.get('review_id'),
             title_id=self.kwargs.get('title_id')
         )
         serializer.save(author=self.request.user, review=review)
+
+    def update(self, request, *args, **kwargs):
+        if request.method == 'PUT':
+            raise MethodNotAllowed('PUT')
+        return super().update(request, *args, **kwargs)
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
@@ -84,7 +79,7 @@ class CategoryViewSet(CreateListDestroyViewSet):
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-
+    lookup_field = 'slug'
 
 class GenreViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
@@ -93,6 +88,7 @@ class GenreViewSet(CreateListDestroyViewSet):
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -100,9 +96,6 @@ class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
-
-    def update(self, request, *args, **kwargs):
-        return Response(
-            {"detail": "PUT method is not allowed."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED
-        )
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TitleFilter
+    http_method_names = ['get', 'post', 'delete', 'patch']

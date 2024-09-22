@@ -1,19 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from rest_framework import filters, generics, mixins, permissions, viewsets
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework import generics, mixins, viewsets, permissions
-from rest_framework import filters
 
 from .permissions import IsOnlyAdmins
+from .serializers import (MyTokenObtainPairSerializer, SignupSerializer,
+                          UserMeSerializer, UserSerializer)
 
-
-from .serializers import (
-    MyTokenObtainPairSerializer,
-    SignupSerializer,
-    UserSerializer,
-    UserMeSerializer
-
-)
 User = get_user_model()
 
 
