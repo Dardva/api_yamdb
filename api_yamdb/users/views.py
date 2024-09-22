@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, generics, mixins, permissions, viewsets
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .permissions import IsOnlyAdmins
+from api.permissions import IsOnlyAdmins
 from .serializers import (MyTokenObtainPairSerializer, SignupSerializer,
                           UserMeSerializer, UserSerializer)
 

@@ -74,16 +74,15 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
-    pagination_class = PageNumberPagination
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
+
 class GenreViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
-    pagination_class = PageNumberPagination
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = (filters.SearchFilter,)
@@ -93,7 +92,6 @@ class GenreViewSet(CreateListDestroyViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    pagination_class = PageNumberPagination
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]

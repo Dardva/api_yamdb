@@ -1,1 +1,1 @@
-FORBIDDEN_USERNAME = ('admin', 'api', 'owner', 'moderator', 'user', 'me')
+FORBIDDEN_USERNAME = ('me',)

@@ -41,13 +41,16 @@ class Command(BaseCommand):
 
                 for row in reader:
                     try:
+                        if model == Title:
+                            category = Category.objects.get(id=row['category'])
+                            row['category'] = category
+                        elif model in (Review, Comment):
+                            author = User.objects.get(id=row['author'])
+                            row['author'] = author
                         if isinstance(model, tuple):
                             genre = Genre.objects.get(id=row['genre_id'])
                             title = Title.objects.get(id=row['title_id'])
-                            genre.title.add(title)
-                        elif model == Title:
-                            category = Category.objects.get(id=row['category'])
-                            row['category'] = category
+                            title.genre.add(genre)
                         else:
                             instance = model(**row)
                             instance.save()
