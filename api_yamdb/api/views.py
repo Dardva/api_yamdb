@@ -1,12 +1,8 @@
-from django.shortcuts import get_object_or_404
-
 from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 
 from rest_framework import filters, viewsets
 from rest_framework.exceptions import MethodNotAllowed
-from rest_framework.pagination import PageNumberPagination
-
-from reviews.models import Category, Genre, Review, Title
 
 from api.filters import TitleFilter
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrModeratorOrAdmin
@@ -18,6 +14,7 @@ from api.serializers import (
     TitleSerializer
 )
 from api.viewsets import CreateListDestroyViewSet
+from reviews.models import Category, Genre, Review, Title
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
