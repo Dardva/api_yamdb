@@ -61,7 +61,8 @@ class TitleSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Genre.objects.all(),
-        many=True
+        many=True,
+        required=True,
     )
     category = serializers.SlugRelatedField(
         slug_field='slug', queryset=Category.objects.all(), required=True
@@ -88,4 +89,10 @@ class TitleSerializer(serializers.ModelSerializer):
         if value > current_year:
             raise serializers.ValidationError(
                 'Нельзя добавлять произведения, которые еще не вышли.')
+        return value
+
+    def validate_genre(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                'Поле "genre" не может быть пустым.')
         return value
