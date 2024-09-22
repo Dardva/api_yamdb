@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status, viewsets
+from rest_framework import filters, status, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -12,7 +12,7 @@ from api.serializers import (
     CommentSerializer
 )
 from api.viewsets import CreateListDestroyViewSet
-from api.permissions import IsAuthorOrModeratorOrAdmin
+from api.permissions import IsAdminOrReadOnly, IsAuthorOrModeratorOrAdmin
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -81,23 +81,27 @@ class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
     pagination_class = PageNumberPagination
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
     pagination_class = PageNumberPagination
     serializer_class = GenreSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     pagination_class = PageNumberPagination
     serializer_class = TitleSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminOrReadOnly]
 
-    def update(self, request):
+    def update(self, request, *args, **kwargs):
         return Response(
             {"detail": "PUT method is not allowed."},
             status=status.HTTP_405_METHOD_NOT_ALLOWED
