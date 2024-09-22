@@ -33,11 +33,11 @@ class UserSerializer(serializers.ModelSerializer):
         if 'username' in attrs and attrs['username'] in FORBIDDEN_USERNAME:
             raise validators.ValidationError('Недопустимое имя пользователя')
         if self.instance is not None:
-            if User.objects.filter(
+            if 'email' in attrs and User.objects.filter(
                 email=attrs['email']
             ).exclude(id=self.instance.id).exists():
                 raise validators.ValidationError('Email уже зарегистрирован')
-            if User.objects.filter(
+            if 'username' in attrs and User.objects.filter(
                 username=attrs['username']
             ).exclude(id=self.instance.id).exists():
                 raise validators.ValidationError(
