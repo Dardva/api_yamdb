@@ -63,11 +63,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         )
         serializer.save(author=self.request.user, review=review)
 
-    def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            raise MethodNotAllowed('PUT')
-        return super().update(request, *args, **kwargs)
-
 
 class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
