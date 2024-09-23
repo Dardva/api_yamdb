@@ -1,12 +1,12 @@
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.http import Http404
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework import serializers, validators
 from rest_framework_simplejwt.serializers import (PasswordField,
                                                   TokenObtainPairSerializer)
 
-from .constants import FORBIDDEN_USERNAME
 
 User = get_user_model()
 
@@ -30,8 +30,6 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        if 'username' in attrs and attrs['username'] in FORBIDDEN_USERNAME:
-            raise validators.ValidationError('Недопустимое имя пользователя')
         if self.instance is not None:
             if 'email' in attrs and User.objects.filter(
                 email=attrs['email']
@@ -42,7 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
             ).exclude(id=self.instance.id).exists():
                 raise validators.ValidationError(
                     'Username уже зарегистрирован')
-        return super().validate(attrs)
+        return attrs
 
 
 class UserMeSerializer(serializers.ModelSerializer):
@@ -64,11 +62,6 @@ class UserMeSerializer(serializers.ModelSerializer):
             'email': {'required': True},
         }
 
-    def validate(self, attrs):
-        if 'username' in attrs and attrs['username'] in FORBIDDEN_USERNAME:
-            raise validators.ValidationError('Недопустимое имя пользователя')
-        return super().validate(attrs)
-
 
 class SignupSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации пользователя."""
@@ -78,26 +71,32 @@ class SignupSerializer(serializers.ModelSerializer):
         fields = ('username', 'email',)
 
     def validate(self, attrs):
-        if attrs['username'] in FORBIDDEN_USERNAME:
-            raise validators.ValidationError('Недопустимое имя пользователя')
-        return super().validate(attrs)
+        if not self.instance:
+            if User.objects.filter(email=attrs['email']).exists():
+                raise serializers.ValidationError(
+                    'Email уже зарегистрирован')
+            if User.objects.filter(username=attrs['username']).exists():
+                raise serializers.ValidationError(
+                    'Username уже зарегистрирован')
+        return attrs
 
     def create(self, validated_data):
         user = User.objects.create_user(
             username=validated_data['username'],
-            email=validated_data['email'],
-            password=self.make_confirmation_code(validated_data)
+            email=validated_data['email']
         )
+        user.save()
+        self.instance = user
+        self.make_confirmation_code(validated_data)
+
         return user
 
     def update(self, instance, validated_data):
-        instance.password = self.make_confirmation_code(
-            validated_data)
-        instance.save()
+        self.make_confirmation_code(validated_data)
         return instance
 
     def make_confirmation_code(self, data):
-        confirmation_code = User.objects.make_random_password()
+        confirmation_code = default_token_generator.make_token(self.instance)
         self.send_confirmation_code(confirmation_code, data['email'])
         return make_password(confirmation_code)
 
@@ -128,22 +127,15 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                 'Пользователь с указанным именем не найден',
             )
 
-        authenticate_kwargs = {
-            self.username_field: attrs[self.username_field],
-            'password': attrs['confirmation_code'],
-        }
-        try:
-            authenticate_kwargs["request"] = self.context["request"]
-
-        except KeyError:
-            pass
-        self.user = authenticate(**authenticate_kwargs)
-        if not self.user:
+        user = User.objects.get(username=attrs[self.username_field])
+        if not default_token_generator.check_token(
+            user, attrs['confirmation_code']
+        ):
             raise serializers.ValidationError(
-                'Пользователь с указанным кодом подтверждения не найден',
+                'Неверный код подтверждения',
                 code='authorization'
             )
-        refresh = self.get_token(self.user)
+        refresh = self.get_token(user)
         data = {'token': str(refresh.access_token)}
         return data
 
@@ -152,6 +144,5 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
 
         token['username'] = user.username
-        token['confirmation_code'] = user.password
 
         return token
