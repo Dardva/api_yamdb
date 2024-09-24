@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, permissions, viewsets
 from rest_framework.exceptions import MethodNotAllowed
@@ -17,7 +18,8 @@ from .serializers import (
     MyTokenObtainPairSerializer,
     ReviewSerializer,
     SignupSerializer,
-    TitleSerializer,
+    TitleReadSerializer,
+    TitleWriteSerializer,
     UserMeSerializer,
     UserSerializer
 )
@@ -88,12 +90,16 @@ class GenreViewSet(CreateListDestroyViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
     http_method_names = ['get', 'post', 'delete', 'patch']
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleReadSerializer
+        return TitleWriteSerializer
 
 
 class MyTokenObtainPairView(TokenObtainPairView):

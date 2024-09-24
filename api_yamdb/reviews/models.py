@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
+from django.shortcuts import render
 
 from reviews.constants import MAX_NAME_LENGTH, MAX_SLUG_LENGTH
 
@@ -35,7 +36,10 @@ class Title(models.Model):
     genre = models.ManyToManyField(
         Genre, verbose_name='Жанр')
     category = models.ForeignKey(
-        Category, verbose_name='Категория', on_delete=models.CASCADE)
+        Category, verbose_name='Категория', on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         default_related_name = 'titles'
@@ -45,13 +49,6 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
-
-    @property
-    def rating(self):
-        """
-        Вычисляет средний рейтинг произведения.
-        """
-        return self.reviews.aggregate(Avg('score'))['score__avg']
 
 
 class Review(models.Model):

@@ -56,18 +56,26 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('name', 'slug')
         model = Category
-
+        fields = ('name', 'slug')
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('name', 'slug')
         model = Genre
+        fields = ('name', 'slug')
 
+class TitleReadSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True)
+    rating = serializers.FloatField(read_only=True)
 
-class TitleSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(required=False)
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+        )
+
+class TitleWriteSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Genre.objects.all(),
@@ -75,38 +83,32 @@ class TitleSerializer(serializers.ModelSerializer):
         required=True,
     )
     category = serializers.SlugRelatedField(
-        slug_field='slug', queryset=Category.objects.all(), required=True
+        slug_field='slug',
+        queryset=Category.objects.all(),
+        required=True
     )
 
     class Meta:
-        fields = (
-            'id', 'name', 'year', 'rating', 'description', 'genre', 'category')
-        read_only_fields = ('id', 'rating')
         model = Title
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['category'] = {
-            'name': instance.category.name,
-            'slug': instance.category.slug
-        }
-        representation['genre'] = GenreSerializer(instance.genre.all(),
-                                                  many=True).data
-        return representation
+        fields = (
+            'id', 'name', 'year', 'description', 'genre', 'category'
+        )
+        read_only_fields = ('id',)
 
     def validate_year(self, value):
         current_year = datetime.datetime.now().year
         if value > current_year:
             raise serializers.ValidationError(
-                'Нельзя добавлять произведения, которые еще не вышли.')
+                'Нельзя добавлять произведения, которые еще не вышли.'
+            )
         return value
 
     def validate_genre(self, value):
         if not value:
             raise serializers.ValidationError(
-                'Поле "genre" не может быть пустым.')
+                'Поле "genre" не может быть пустым.'
+            )
         return value
-
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя для админа."""
