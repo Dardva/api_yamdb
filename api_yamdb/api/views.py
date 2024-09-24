@@ -1,20 +1,30 @@
+from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.generics import get_object_or_404
-
-from rest_framework import filters, viewsets
+from rest_framework import filters, generics, permissions, viewsets
 from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.generics import get_object_or_404
+from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-from api.filters import TitleFilter
-from api.permissions import IsAdminOrReadOnly, IsAuthorOrModeratorOrAdmin
-from api.serializers import (
+from .filters import TitleFilter
+from .permissions import (
+    IsAdminOrReadOnly, IsAuthorOrModeratorOrAdmin, IsOnlyAdmins
+)
+from .serializers import (
     CategorySerializer,
     CommentSerializer,
     GenreSerializer,
+    MyTokenObtainPairSerializer,
     ReviewSerializer,
-    TitleSerializer
+    SignupSerializer,
+    TitleSerializer,
+    UserMeSerializer,
+    UserSerializer
 )
-from api.viewsets import CreateListDestroyViewSet
+from .viewsets import CreateListDestroyViewSet
 from reviews.models import Category, Genre, Review, Title
+
+User = get_user_model()
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -94,3 +104,45 @@ class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
     http_method_names = ['get', 'post', 'delete', 'patch']
+
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+
+
+class UsersViewSet(viewsets.ModelViewSet):
+    lookup_field = 'username'
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsOnlyAdmins]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
+    http_method_names = ['get', 'post', 'patch', 'delete']
+
+
+class UsersMeView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserMeSerializer
+    queryset = User.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = SignupSerializer
+
+    def get_object(self):
+        return get_object_or_404(User, username=self.request.data['username'],
+                                 email=self.request.data['email'])
+
+    def create(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+        except Exception:
+            instance = None
+        serializer = self.get_serializer(data=request.data, instance=instance)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=200)
