@@ -95,20 +95,13 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('id',)
 
-    def validate_year(self, value):
-        current_year = datetime.datetime.now().year
-        if value > current_year:
-            raise serializers.ValidationError(
-                'Нельзя добавлять произведения, которые еще не вышли.'
-            )
-        return value
-
     def validate_genre(self, value):
         if not value:
             raise serializers.ValidationError(
                 'Поле "genre" не может быть пустым.'
             )
         return value
+
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя для админа."""

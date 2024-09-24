@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -26,10 +28,19 @@ class Genre(models.Model):
         verbose_name_plural = 'Жанры'
         ordering = ('name',)
 
+def validate_year(value):
+    current_year = timezone.now().year
+    if value > current_year:
+        raise ValidationError(
+            'Нельзя добавлять произведения, которые еще не вышли.'
+        )
 
 class Title(models.Model):
     name = models.CharField('Название', max_length=MAX_NAME_LENGTH)
-    year = models.IntegerField('Год создания')
+    year = models.IntegerField(
+        'Год создания',
+        validators=[validate_year]
+    )
     description = models.TextField('Описание', blank=True)
     genre = models.ManyToManyField(
         Genre, verbose_name='Жанр')
@@ -47,6 +58,8 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
+
+
 
 
 class Review(models.Model):
