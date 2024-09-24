@@ -26,7 +26,8 @@ class Genre(models.Model):
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-        ordering = ('name',)
+        ordering = ('name', 'slug')
+
 
 def validate_year(value):
     current_year = timezone.now().year
@@ -34,6 +35,7 @@ def validate_year(value):
         raise ValidationError(
             'Нельзя добавлять произведения, которые еще не вышли.'
         )
+
 
 class Title(models.Model):
     name = models.CharField('Название', max_length=MAX_NAME_LENGTH)
@@ -52,14 +54,12 @@ class Title(models.Model):
 
     class Meta:
         default_related_name = 'titles'
-        ordering = ('year',)
+        ordering = ('year', 'name')
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
 
     def __str__(self):
         return self.name
-
-
 
 
 class Review(models.Model):
