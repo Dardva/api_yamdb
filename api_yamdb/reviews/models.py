@@ -1,8 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Avg
-from django.shortcuts import render
 
 from reviews.constants import MAX_NAME_LENGTH, MAX_SLUG_LENGTH
 
