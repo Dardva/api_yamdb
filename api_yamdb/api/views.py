@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, generics, permissions, viewsets
+from rest_framework import filters, generics, permissions, views, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -124,9 +124,12 @@ class UsersMeView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-class RegisterView(generics.CreateAPIView):
+class RegisterView(views.APIView):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
 
     def get_object(self):
         return get_object_or_404(User, username=self.request.data['username'],
@@ -137,7 +140,8 @@ class RegisterView(generics.CreateAPIView):
             instance = self.get_object()
         except Exception:
             instance = None
-        serializer = self.get_serializer(data=request.data, instance=instance)
+        serializer = self.serializer_class(
+            data=request.data, instance=instance)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=200)

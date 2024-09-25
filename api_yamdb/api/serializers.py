@@ -191,7 +191,6 @@ class SignupSerializer(serializers.ModelSerializer):
     def make_confirmation_code(self, data):
         confirmation_code = default_token_generator.make_token(self.instance)
         self.send_confirmation_code(confirmation_code, data['email'])
-        return make_password(confirmation_code)
 
     def send_confirmation_code(self, confirmation_code, email):
         send_mail(
@@ -214,13 +213,13 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         del self.fields['password']
 
     def validate(self, attrs):
-        if not User.objects.filter(
-                username=attrs[self.username_field]).exists():
+        user = User.objects.filter(
+            username=attrs[self.username_field]).first()
+        if not user:
             raise Http404(
                 'Пользователь с указанным именем не найден',
             )
 
-        user = User.objects.get(username=attrs[self.username_field])
         if not default_token_generator.check_token(
             user, attrs['confirmation_code']
         ):

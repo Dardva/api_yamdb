@@ -6,14 +6,18 @@ from .validators import UsernameValidator
 
 class User(AbstractUser):
     """Модель пользователя."""
+
+    USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
     bio = models.TextField(verbose_name='Биография',
                            blank=True, max_length=500)
     role = models.CharField(
         max_length=10,
         choices=(
-            ('user', 'user'),
-            ('moderator', 'moderator'),
-            ('admin', 'admin'),
+            (USER, 'user'),
+            (MODERATOR, 'moderator'),
+            (ADMIN, 'admin'),
         ),
         default='user'
     )
@@ -37,12 +41,12 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.role == 'admin' or self.is_superuser
+        return self.role == self.ADMIN or self.is_superuser
 
     @property
     def is_moderator(self):
-        return self.role == 'moderator'
+        return self.role == self.MODERATOR
 
     @property
     def is_user(self):
-        return self.role == 'user'
+        return self.role == self.USER

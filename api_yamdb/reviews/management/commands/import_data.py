@@ -1,9 +1,8 @@
 import csv
 import os
-import logging
-from sys import stdout
 
 from django.core.management.base import BaseCommand
+
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
@@ -11,12 +10,6 @@ class Command(BaseCommand):
     """
     Класс для импорта данных из csv файлов в базу данных.
     """
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        encoding='utf-8',
-        stream=stdout
-    )
 
     def handle(self, *args, **options):
 
@@ -62,7 +55,16 @@ class Command(BaseCommand):
                             instance = model(**row)
                             instance.save()
                     except Exception as error:
-                        logging.error(
-                            f'Ошибка импорта данных {model}', error)
-            logging.info(f'{filename} was imported.')
-        logging.info('Import finished.')
+                        self.stdout.write(
+                            self.style.ERROR(
+                                'Error while importing data: %s' % error
+                            )
+                        )
+                        continue
+            self.stdout.write(
+                self.style.SUCCESS(
+                    'Successfully imported data from %s' % filename)
+            )
+        self.stdout.write(
+            self.style.SUCCESS('Imported all data')
+        )

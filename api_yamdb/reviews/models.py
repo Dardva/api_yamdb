@@ -1,10 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
-from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from reviews.constants import MAX_NAME_LENGTH, MAX_SLUG_LENGTH
+from reviews.validators import validate_year
 
 User = get_user_model()
 
@@ -27,14 +26,6 @@ class Genre(models.Model):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
         ordering = ('name', 'slug')
-
-
-def validate_year(value):
-    current_year = timezone.now().year
-    if value > current_year:
-        raise ValidationError(
-            'Нельзя добавлять произведения, которые еще не вышли.'
-        )
 
 
 class Title(models.Model):
