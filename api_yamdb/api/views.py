@@ -128,14 +128,11 @@ class RegisterView(views.APIView):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
     def get_object(self):
         return get_object_or_404(User, username=self.request.data['username'],
                                  email=self.request.data['email'])
 
-    def create(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
         except Exception:
